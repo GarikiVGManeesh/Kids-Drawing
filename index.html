@@ -188,20 +188,7 @@
     setColor(colorPicker.value);
   }
 
-  function saveCanvas() {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width;
-    tempCanvas.height = canvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-
-    tempCtx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    tempCtx.drawImage(canvas, 0, 0);
-
-    const link = document.createElement('a');
-    link.download = 'drawing_with_background.png';
-    link.href = tempCanvas.toDataURL('image/png');
-    link.click();
-  }
+  
 </script>
 
 </body>
