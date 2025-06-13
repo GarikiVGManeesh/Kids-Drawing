@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎨 Kids Drawing Game 🎨</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+     background: url('kids.jpg') no-repeat center center fixed;
+   background-size: cover;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #canvas {
+      border: 2px solid #000;
+      background: #fff;
+      cursor: crosshair;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .controls {
+      margin: 10px;
+    }
+
+    .controls input[type="color"],
+    .controls input[type="range"],
+    .controls button {
+      padding: 8px 12px;
+      margin: 5px;
+      font-size: 16px;
+    }
+
+    .color-btn {
+      width: 30px;
+      height: 30px;
+      border: 2px solid #999;
+      margin: 3px;
+      border-radius: 50%;
+      cursor: pointer;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 Kids Drawing Game 🎨</h1>
+
+  <div class="controls">
+    <div id="colorPalette"></div>
+    <input type="color" id="colorPicker" value="#000000" onchange="setColor(this.value)">
+    <button onclick="setEraser()">Eraser</button>
+    <button onclick="toggleRainbow()">Rainbow</button>
+    <label>Thickness: <input type="range" id="thickness" min="1" max="20" value="4" /></label>
+    <button onclick="clearCanvas()">Clear</button>
+    <button onclick="saveCanvas()">Save Drawing</button>
+  </div>
+
+  <canvas id="canvas" width="800" height="500"></canvas>
+
+  <script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const colorPicker = document.getElementById('colorPicker');
+  const thicknessSlider = document.getElementById('thickness');
+
+  let isDrawing = false;
+  let currentColor = colorPicker.value;
+  let currentThickness = thicknessSlider.value;
+  let rainbowMode = false;
+  let hue = 0;
+
+  const background = new Image();
+  background.src = '0d793f70-6f03-470e-8b06-97e4576d4bf9.png'; // make sure this file is present
+
+  background.onload = () => {
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  };
+
+  const colors = [
+    'black', 'gray', 'silver', 'white', 'maroon',
+    'red', 'purple', 'fuchsia', 'green', 'lime',
+    'olive', 'yellow', 'navy', 'blue', 'teal',
+    'aqua', 'orange', 'brown', 'coral', 'gold',
+    'pink', 'indigo', 'violet'
+  ];
+
+  const palette = document.getElementById('colorPalette');
+  colors.forEach(color => {
+    const btn = document.createElement('button');
+    btn.className = 'color-btn';
+    btn.style.background = color;
+    btn.onclick = () => setColor(color);
+    palette.appendChild(btn);
+  });
+
+  function setColor(color) {
+    rainbowMode = false;
+    ctx.globalCompositeOperation = 'source-over';
+    currentColor = color;
+    colorPicker.value = color;
+  }
+
+  function setEraser() {
+    rainbowMode = false;
+    ctx.globalCompositeOperation = 'destination-out';
+  }
+
+  function toggleRainbow() {
+    rainbowMode = true;
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  thicknessSlider.addEventListener('input', () => {
+    currentThickness = thicknessSlider.value;
+  });
+
+  function getXY(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    } else {
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  }
+
+  function startDraw(e) {
+    isDrawing = true;
+    const { x, y } = getXY(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    e.preventDefault();
+  }
+
+  function stopDraw(e) {
+    isDrawing = false;
+    ctx.beginPath();
+    e.preventDefault();
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    const { x, y } = getXY(e);
+
+    ctx.lineWidth = currentThickness;
+    ctx.lineCap = 'round';
+
+    if (rainbowMode) {
+      ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+      hue = (hue + 1) % 360;
+    } else {
+      ctx.strokeStyle = currentColor;
+    }
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    e.preventDefault(); // Prevents scrolling
+  }
+
+  // Mouse events
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mousemove', draw);
+
+  // Touch events
+  canvas.addEventListener('touchstart', startDraw);
+  canvas.addEventListener('touchend', stopDraw);
+  canvas.addEventListener('touchmove', draw);
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = 'source-over';
+    setColor(colorPicker.value);
+  }
+
+  function saveCanvas() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    tempCtx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = 'drawing_with_background.png';
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
+  }
+</script>
+
+</body>
+</html>
